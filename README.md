@@ -1,4 +1,4 @@
-# DieselRadar Pipeline
+# Diesel Radar Pipeline
 
 Pipeline de dados que acompanha o preço do Diesel S10 por estado, semana a semana, com base na série histórica de preços da ANP — construído para apoiar decisão de onde abastecer e quando renegociar frete.
 
