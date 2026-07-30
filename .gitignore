@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Variáveis de ambiente e credenciais (Snowflake, etc)
+.env
+*.env
+profiles.yml
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# Airflow (arquivos gerados ao rodar localmente)
+airflow/logs/
+airflow/airflow.db
+airflow/airflow.cfg
+
+# Editor
+.vscode/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
