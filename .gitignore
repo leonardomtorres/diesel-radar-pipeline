@@ -9,6 +9,9 @@ venv/
 *.env
 profiles.yml
 
+# Dados baixados (arquivos brutos da ANP, não versionados)
+data/
+
 # dbt
 target/
 dbt_packages/
