@@ -71,7 +71,7 @@ No final, o Diesel Radar deixa de ser só um pipeline de dados: a engenharia de 
 
 - [x] Estrutura do projeto
 - [x] Ingestão dos dados da ANP (bronze)
-- [ ] Modelagem dbt (bronze / silver / gold)
+- [x] Modelagem dbt (bronze / silver / gold)
 - [ ] Orquestração com Airflow
 - [ ] CI/CD com GitHub Actions
 - [ ] Dashboard final
