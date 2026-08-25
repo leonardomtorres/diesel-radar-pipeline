@@ -8,27 +8,27 @@ Este pipeline transforma a variação semanal do preço do Diesel S10 por estado
 
 ## Fonte de dados
 
-**Série Histórica de Preços de Combustíveis e de GLP — ANP**, pesquisa semanal (dado novo às sextas-feiras), distribuída em CSV para download direto (sem API REST oficial para este dataset). Granularidade original: 1 linha = 1 posto pesquisado numa semana.
+**"Levantamento de Preços de Combustíveis (últimas semanas pesquisadas)" — ANP**, pesquisa semanal (arquivo novo publicado toda semana), distribuída em **Excel (.xlsx)** para download direto — sem API REST oficial para este dataset, e o nome do arquivo muda a cada semana (tem o intervalo de datas no nome). Granularidade: 1 linha = 1 posto pesquisado numa semana. Não existe carga histórica automatizada — o pipeline acumula histórico a partir do momento em que passa a rodar; um backfill via a Série Histórica por semestre da ANP foi considerado e descartado por ora (ver decisão no histórico do projeto).
 
-Colunas do CSV de origem: `Região, Estado, Município, Revenda, CNPJ da Revenda, Endereço, Bairro, CEP, Produto, Data da Coleta, Valor de Venda, Valor de Compra, Unidade de Medida, Bandeira`.
+O arquivo real tem 9 linhas de título/metadado do relatório antes da tabela de dados começar. Colunas de origem (a partir da linha 10): `CNPJ, RAZÃO, FANTASIA, ENDEREÇO, NÚMERO, COMPLEMENTO, BAIRRO, CEP, MUNICÍPIO, ESTADO, BANDEIRA, PRODUTO, UNIDADE DE MEDIDA, PREÇO DE REVENDA, DATA DA COLETA` — não existe uma coluna de "valor de compra" (é um relatório só de revenda, não de distribuição).
 
 Produto em foco: **Diesel S10** (o mais usado atualmente em frotas de carga).
 
 ## Bronze — `bronze.precos_combustiveis_raw`
 
-Cópia crua do CSV, sem tratar nada, renomeada para `snake_case`.
+Cópia crua do arquivo, sem tratar nada de negócio — só renomeada para `snake_case` e com tipos de coluna consistentes (necessário pra carga funcionar; não é limpeza de negócio, ver conversa do projeto sobre essa distinção).
 
 | Coluna | Origem |
 |---|---|
-| regiao, estado, municipio | CSV original |
-| revenda, cnpj_revenda | CSV original |
-| endereco, bairro, cep | CSV original |
-| produto | CSV original |
-| data_coleta | CSV original |
-| valor_venda, valor_compra, unidade_medida | CSV original |
-| bandeira | CSV original |
+| cnpj, razao, fantasia | Arquivo original (identificação do posto) |
+| endereco, numero, complemento, bairro, cep | Arquivo original |
+| municipio, estado | Arquivo original |
+| bandeira | Arquivo original |
+| produto, unidade_de_medida | Arquivo original |
+| preco_de_revenda | Arquivo original |
+| data_da_coleta | Arquivo original |
 | _source_file | Adicionada pelo pipeline — nome do arquivo de origem |
-| _loaded_at | Adicionada pelo pipeline — timestamp da carga |
+| _loaded_at | Adicionada pelo pipeline — timestamp da carga (UTC) |
 
 ## Silver — `silver.precos_combustiveis`
 
@@ -36,17 +36,17 @@ Mesma granularidade (1 linha = 1 posto + 1 produto + 1 data de coleta), mas limp
 
 | Coluna | Transformação |
 |---|---|
-| uf | Padronizado para sigla de 2 letras |
-| municipio, revenda | Normalizados (espaços, maiúsculas) |
+| uf | Vem de `estado`, padronizado para sigla de 2 letras |
+| municipio, fantasia | Normalizados (espaços, maiúsculas) |
 | produto | Normalizado para conjunto fixo (DIESEL_S10, etc) |
-| data_coleta | Tipo DATE |
-| semana_referencia | Calculada: segunda-feira da semana da data_coleta |
-| valor_venda | Convertido para número; linhas com preço <= 0 ou nulo são removidas |
+| data_coleta | Vem de `data_da_coleta`, tipo DATE |
+| semana_referencia | Calculada: segunda-feira da semana de `data_coleta` |
+| preco_venda | Vem de `preco_de_revenda`, convertido para número; linhas com preço <= 0 ou nulo são removidas |
 | bandeira | Mantido |
 
-Colunas descartadas em relação ao bronze: endereço, CEP, complemento (não servem à pergunta de negócio, que é regional).
+Colunas descartadas em relação ao bronze: cnpj, razao, endereço, número, complemento, CEP (não servem à pergunta de negócio, que é regional — só o essencial pro cálculo passa pro silver).
 
-Testes de qualidade aplicados aqui via dbt: `valor_venda` não pode ser negativo/nulo, `uf` precisa estar entre as 27 UFs válidas, `produto` precisa estar no conjunto normalizado.
+Testes de qualidade aplicados aqui via dbt: `preco_venda` não pode ser negativo/nulo, `uf` precisa estar entre as 27 UFs válidas, `produto` precisa estar no conjunto normalizado.
 
 ## Gold — filtrado para Diesel S10
 

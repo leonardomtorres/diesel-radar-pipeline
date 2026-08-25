@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: DIESEL_RADAR
+    schema: BRONZE
+    tables:
+      - name: precos_combustiveis_raw

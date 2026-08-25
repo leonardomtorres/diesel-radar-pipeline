@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: precos_combustiveis
+    columns:
+      - name: uf
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
+      - name: produto
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['DIESEL_S10','DIESEL_S500','GASOLINA','ETANOL','GLP','GNV']
+      - name: data_coleta
+        tests:
+          - not_null
+      - name: preco_venda
+        tests:
+          - not_null
+      - name: semana_referencia
+        tests:
+          - not_null
